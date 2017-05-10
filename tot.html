@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        /* Always set the map height explicitly to define the size of the div
+         * element that contains the map. */
+        #map {
+            height: 100%;
+        }
+        /* Optional: Makes the sample page fill the window. */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<script>
+    var map;
+    function initMap() {
+
+        var styleArray = [
+            {
+                featureType: 'all',
+                stylers: [
+                    { saturation: -80 }
+                ]
+            }, {
+                featureType: 'road.arterial',
+                elementType: 'geometry',
+                stylers: [
+                    { hue: '#00ffee' },
+                    { saturation: 50 }
+                ]
+            }, {
+                featureType: 'poi.business',
+                elementType: 'labels',
+                stylers: [
+                    { visibility: 'off' }
+                ]
+            }
+        ];
+
+        var mapOptions = {
+            zoom: 12,
+            center: {lat: -37.813534, lng: 144.963625},
+            styles: styleArray
+        };
+
+        var map = new google.maps.Map(document.getElementById('map'),
+            mapOptions);
+
+
+
+
+        // Load GeoJSON.
+        //map.data.loadGeoJson('https://gist.githubusercontent.com/vgrem/4d6ff14d50f408e864f1ee4614653c1c/raw/schools.geojson');
+
+        map.data.loadGeoJson('totaltest.geojson', null, function (features) {
+
+            var markers = features.map(function (feature) {
+                var g = feature.getGeometry();
+                var marker = new google.maps.Marker({ 'position': g.get(0) });
+                return marker;
+            });
+
+            var markerCluster = new MarkerClusterer(map, markers,{ imagePath: 'https://cdn.rawgit.com/googlemaps/js-marker-clusterer/gh-pages/images/m' });
+        });
+
+
+
+        map.data.setStyle(function (feature) {
+            return { icon: feature.getProperty('icon'), visible: false };
+        });
+
+
+
+    }
+
+    initMap();
+    //google.maps.event.addDomListener(window, 'load', initMap)
+</script>
+<link rel="stylesheet" href="style.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js"></script>
+<script src="https://googlemaps.github.io/js-marker-clusterer/src/markerclusterer.js"></script>
+<script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCz74m_5eymTlRBHaLFt04wdQSOiS7vLr8&callback=initMap">
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+---
+- hosts: dbServers
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+
+  vars:
+    http_port: 80
+  
+  tasks: 
+  - name: update
+    command: apt-get update
+
+  - name: Install db dependencies
+    command: sudo apt-get --no-install-recommends -y install build-essential pkg-config erlang libicu-dev libmozjs185-dev libcurl4-openssl-dev curl
+
+  - name: get package
+    command: wget http://mirrors.advancedhosters.com/apache/couchdb/source/2.0.0/apache-couchdb-2.0.0.tar.gz
+
+  - name: unzip
+    command: tar -zxvf apache-couchdb-2.0.0.tar.gz
+
+  - name: cd in folder
+    shell: cd ./apache-couchdb-2.0.0/
+
+  - name: configure
+    command: ./configure
+    args:
+      chdir: '/home/ubuntu/apache-couchdb-2.0.0/'
+      creates: '/home/ubuntu/apache-couchdb-2.0.0/rel/couchdb.config'
+
+  - name: install
+    shell: make release
+    args:
+      chdir: '/home/ubuntu/apache-couchdb-2.0.0/'
+      creates: '/homne/ubuntu/apache-couchdb-2.0.0/rel/couchdb'
+
+  - name: adduser
+    command: sudo adduser --system --no-create-home --shell /bin/bash --group --gecos "CouchDB Administrator" couchdb
+
+  - name: copy
+    shell: cp -R /home/ubuntu/apache-couchdb-2.0.0/rel/couchdb /home/couchdb
+
+  - name: chown
+    command: chown -R couchdb:couchdb /home/couchdb
+  
+  - name: chmod
+    shell: find /home/couchdb -type d -exec chmod 0770 {} \;
+
+  - name: update permission
+    shell: chmod 0644 /home/couchdb/etc/*
+
+
+
+
+  - name: change vm.args
+    lineinfile: 
+      dest: /home/couchdb/etc/vm.args
+      regexp: '-name'
+      line: "-name couchdb@{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}"
+
+
+
+  
+
+ 
+
+curl -X PUT http://admin:admin@127.0.0.1:5984/_node/couchdb@{{host_ip.stdout}}/_config/chttpd/bind_address -d '"0.0.0.0"'
+
+
+
+curl -X PUT http://127.0.0.1:5984/_node/couchdb@{{host_ip.stdout}}/_config/admins/admin -d '"admin"'
+
+
+
+  - name: start
+    command: sudo -i -u couchdb /home/couchdb/bin/couchdb 1>/dev/null 2>/dev/null &
+
+
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "enable_cluster", "bind_address":"0.0.0.0", "username": "admin", "password":"admin"}'
+
+{"error":"bad_request","reason":"Cluster is already enabled"}
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "enable_cluster", "bind_address":"0.0.0.0", "username": "admin", "password":"admin", "port": 15984, "remote_node": "146.118.102.201", "remote_current_user": "admin", "remote_current_password": "admin" }'
+
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "add_node", "host":"146.118.102.201", "port": "5984", "username": "admin", "password":"admin"}'
+
+curl -X POST -H "Content-Type: application/json" http://admin:admin@127.0.0.1:5984/_cluster_setup -d '{"action": "finish_cluster"}'
+
+sudo apt-get install python-pip
+sudo pip install tweepy
+sudo apt-get install python-sklearn
+
