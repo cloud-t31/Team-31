@@ -24,10 +24,7 @@ export OS_PROJECT_NAME="CCC2017-Team31"
 export OS_USERNAME="t.han6@student.unimelb.edu.au"
 
 # With Keystone you pass the keystone password.
-
 export OS_PASSWORD=ZDI5NzgzYjZiZTVlOTlk
-
-export OS_COMPUTE_API_VERSION=2
 
 # If your configuration has multiple regions, we set that information here.
 # OS_REGION_NAME is optional and only valid in certain environments.
