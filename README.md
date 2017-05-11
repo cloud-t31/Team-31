@@ -8,6 +8,6 @@ Development Steps:
 4. Run CreateHosts.py, check and configure 'hosts' file
 5. Add comp90024.pem as private key
 6. Run Ansible command:
-   ansible-playbook -i host install-couchdb.yml, then check and configure the database situation
-   ansible-playbook -i host StartHarvester, then check and configure the database situation
-   ansible-playbook -i host web.yml, then check and configure the web server situation
+   ansible-playbook -i host install-couchdb.yml, then check and configure the database situation;
+   ansible-playbook -i host StartHarvester, then check and configure the database situation;
+   ansible-playbook -i host web.yml, then check and configure the web server situation;
