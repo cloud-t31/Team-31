@@ -1,0 +1,13 @@
+
+
+- hosts: dbServers
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+
+  vars:
+    http_port: 80
+  
+  tasks: 
+  - name: Start harvest
+    command: python3  /home/ubuntu/sentiment_analysis/tweet_harvester.py 

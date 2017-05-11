@@ -1,0 +1,75 @@
+---
+- hosts: dbServers
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+
+  vars:
+    http_port: 80
+  
+  tasks: 
+  - name: update
+    command: apt-get update
+
+  - name: Install db dependencies
+    command: sudo apt-get --no-install-recommends -y install build-essential pkg-config erlang libicu-dev libmozjs185-dev libcurl4-openssl-dev curl git python3-pip python3-sklearn python3-nltk
+   
+  - name: Install tweepy
+    command: sudo pip3 install tweepy twython couchdb 
+
+  - name: get package
+    command: wget http://mirrors.advancedhosters.com/apache/couchdb/source/2.0.0/apache-couchdb-2.0.0.tar.gz
+
+  - name: unzip
+    command: tar -zxvf apache-couchdb-2.0.0.tar.gz
+
+  - name: cd in folder
+    shell: cd ./apache-couchdb-2.0.0/
+
+  - name: configure
+    command: ./configure
+    args:
+      chdir: '/home/ubuntu/apache-couchdb-2.0.0/'
+      creates: '/home/ubuntu/apache-couchdb-2.0.0/rel/couchdb.config'
+
+  - name: install
+    shell: make release
+    args:
+      chdir: '/home/ubuntu/apache-couchdb-2.0.0/'
+      creates: '/homne/ubuntu/apache-couchdb-2.0.0/rel/couchdb'
+
+  - name: adduser
+    command: sudo adduser --system --no-create-home --shell /bin/bash --group --gecos "CouchDB Administrator" couchdb
+
+  - name: copy
+    shell: cp -R /home/ubuntu/apache-couchdb-2.0.0/rel/couchdb /home/couchdb
+
+  - name: chown
+    command: chown -R couchdb:couchdb /home/couchdb
+  
+  - name: chmod
+    shell: find /home/couchdb -type d -exec chmod 0770 {} \;
+
+  - name: update permission
+    shell: chmod 0644 /home/couchdb/etc/*
+
+  - name: change vm.args
+    lineinfile: 
+      dest: /home/couchdb/etc/vm.args
+      regexp: '-name'
+      line: "-name couchdb@{{ ansible_eth0['ipv4']['address'] }}"
+      
+  - name: add admin username
+    command: curl -X PUT http://127.0.0.1:5984/_node/couchdb@{{ ansible_eth0['ipv4']['address'] }}/_config/admins/admin -d '"admin"'
+
+  - name: bind to '0.0.0.0'
+    command: curl -X PUT http://admin:admin@127.0.0.1:5984/_node/couchdb@{{ ansible_eth0['ipv4']['address'] }}/_config/chttpd/bind_address -d '"0.0.0.0"'
+
+  - name: start
+    command: sudo -i -u couchdb /home/couchdb/bin/couchdb 1>/dev/null 2>/dev/null &
+
+  - name: upload source file
+    git: repo=https://github.com/cloud-t31/Team31.git dest=/home/ubuntu/sentiment_analysis update=no
+    
+  - name: Install vader_lexicon
+    command: sudo cp /home/ubuntu/sentiment_analysis/vader_lexicon.txt /usr/lib/python3/dist-packages/nltk/sentiment/vader_lexicon.txt

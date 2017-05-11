@@ -1,0 +1,14 @@
+---
+- hosts: dbServers
+  remote_user: ubuntu
+  become: yes
+  become_user: root
+
+  - name: Install apache2
+    command: sudo apt-get install apahce2 -y
+  - name: Run server
+    command: sudo service start apache2
+  - name: copy geojson file
+    command: cp /home/ubuntu/sentiment_analysis/totaltest.geojson /var/www/html
+  - name: copy webpage file
+    command: cp /home/ubuntu/sentiment_analysis/tot.html /var/www/html
